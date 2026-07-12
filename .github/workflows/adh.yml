@@ -1,0 +1,36 @@
+name: ADH advisory evidence
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  evidence:
+    runs-on: ubuntu-24.04
+    env:
+      ADH_API_URL: ${{ secrets.ADH_API_URL }}
+      ADH_PROJECT_TOKEN: ${{ secrets.ADH_PROJECT_TOKEN }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install ADH
+        run: |
+          curl --fail --location --silent --show-error \
+            https://github.com/matbram/ai-harness/releases/latest/download/adh-x86_64-unknown-linux-gnu \
+            --output /tmp/adh
+          chmod 0755 /tmp/adh
+      - name: Detect project
+        run: /tmp/adh detect
+      - name: Run advisory test and upload evidence
+        run: /tmp/adh test
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: adh-evidence-${{ github.sha }}
+          path: .adh/evidence/*.json
+          if-no-files-found: warn
+          retention-days: 30
