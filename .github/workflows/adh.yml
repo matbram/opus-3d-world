@@ -1,0 +1,49 @@
+name: ADH advisory evidence
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  evidence:
+    runs-on: ubuntu-24.04
+    env:
+      ADH_API_URL: ${{ secrets.ADH_API_URL }}
+      ADH_PROJECT_TOKEN: ${{ secrets.ADH_PROJECT_TOKEN }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install ADH
+        run: |
+          curl --fail --location --silent --show-error \
+            "${ADH_API_URL%/}/downloads/adh-x86_64-unknown-linux-gnu" \
+            --output /tmp/adh
+          chmod 0755 /tmp/adh
+      - name: Detect project
+        id: detect
+        run: |
+          if /tmp/adh detect; then
+            echo "supported=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "supported=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Report unavailable advisory evidence
+        if: steps.detect.outputs.supported != 'true'
+        run: |
+          echo "::warning::ADH could not detect a supported project stack yet; advisory evidence remains unknown."
+          echo "### ADH advisory status: unknown" >> "$GITHUB_STEP_SUMMARY"
+          echo "No supported project stack was detected, so no test evidence was claimed." >> "$GITHUB_STEP_SUMMARY"
+      - name: Run advisory test and upload evidence
+        if: steps.detect.outputs.supported == 'true'
+        run: /tmp/adh test
+      - uses: actions/upload-artifact@v7
+        if: always() && steps.detect.outputs.supported == 'true'
+        with:
+          name: adh-evidence-${{ github.sha }}
+          path: .adh/evidence/*.json
+          if-no-files-found: warn
+          retention-days: 30
