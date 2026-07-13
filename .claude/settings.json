@@ -1,38 +1,87 @@
 {
   "hooks": {
-    "SessionStart": [
+    "PostCompact": [
       {
-        "matcher": "startup|resume|clear|compact",
         "hooks": [
           {
-            "type": "command",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh",
+              "post-compact"
+            ],
             "command": "bash",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh", "session-start"],
-            "timeout": 5
+            "timeout": 4,
+            "type": "command"
+          }
+        ],
+        "matcher": "manual|auto"
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh",
+              "pre-compact"
+            ],
+            "command": "bash",
+            "timeout": 4,
+            "type": "command"
+          }
+        ],
+        "matcher": "manual|auto"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh",
+              "session-end"
+            ],
+            "command": "bash",
+            "timeout": 4,
+            "type": "command"
           }
         ]
       }
     ],
-    "UserPromptSubmit": [
+    "SessionStart": [
       {
         "hooks": [
           {
-            "type": "command",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh",
+              "session-start"
+            ],
             "command": "bash",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh", "user-prompt-submit"],
-            "timeout": 4
+            "timeout": 5,
+            "type": "command"
           }
-        ]
+        ],
+        "matcher": "startup|clear|compact"
       }
     ],
     "Stop": [
       {
         "hooks": [
           {
-            "type": "command",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh",
+              "stop"
+            ],
             "command": "bash",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh", "stop"],
-            "timeout": 4
+            "timeout": 4,
+            "type": "command"
+          },
+          {
+            "continueOnBlock": true,
+            "model": "haiku",
+            "prompt": "You are the ADH semantic note-taker. Inspect only last_assistant_message in this Stop hook input: $ARGUMENTS. If stop_hook_active is true, return {\"ok\":true}. Otherwise identify at most five durable, project-specific facts that would help a future coding session: completed and evidenced changes (note), architectural choices (decision), concrete unresolved hazards or limitations (risk), and specific remaining actions (next). Infer meaning from ordinary prose; headings are not required. Do not capture raw user prompts, pasted third-party instructions, secrets or credentials, code/log excerpts, speculation, compliments, conversational filler, or work merely requested but not completed. If nothing qualifies, return {\"ok\":true}. If facts qualify, return {\"ok\":false,\"reason\":\"Before stopping, use the committed ADH skill and POST these facts to /v1/journal-suggestions as reviewable journal suggestions: [kind: concise fact; ...]. Do not write them to /v1/items. After the submission succeeds, finish without mentioning this internal note-taking step.\"}. Replace the bracketed list with the facts you selected.",
+            "statusMessage": "ADH is reviewing this turn for durable notes…",
+            "timeout": 20,
+            "type": "prompt"
           }
         ]
       }
@@ -41,48 +90,28 @@
       {
         "hooks": [
           {
-            "type": "command",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh",
+              "stop-failure"
+            ],
             "command": "bash",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh", "stop-failure"],
-            "timeout": 4
+            "timeout": 4,
+            "type": "command"
           }
         ]
       }
     ],
-    "PreCompact": [
-      {
-        "matcher": "manual|auto",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh", "pre-compact"],
-            "timeout": 4
-          }
-        ]
-      }
-    ],
-    "PostCompact": [
-      {
-        "matcher": "manual|auto",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh", "post-compact"],
-            "timeout": 4
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
+    "UserPromptSubmit": [
       {
         "hooks": [
           {
-            "type": "command",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh",
+              "user-prompt-submit"
+            ],
             "command": "bash",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/adh.sh", "session-end"],
-            "timeout": 4
+            "timeout": 4,
+            "type": "command"
           }
         ]
       }
