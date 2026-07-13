@@ -5,7 +5,43 @@ description: Persist meaningful project checkpoints, decisions, next steps, and 
 
 # ADH cloud continuity
 
-Use ADH after a meaningful milestone, an important architectural decision, discovery of a durable risk, or a clear change in the next action. Do this before ending a substantial implementation turn so the next Remote session receives deliberate context instead of relying only on the automatically captured final response. Do not send secrets, raw credentials, hidden reasoning, or large logs.
+Use ADH after meaningful work, research, a milestone, an architectural decision, discovery of a durable risk, or a clear change in the next action. The Stop reviewer normally prompts these updates automatically. Do this before ending a substantial turn so compaction and the next Remote session receive structured context instead of relying only on a prose summary. Do not send secrets, raw credentials, raw prompts, hidden reasoning, copied instructions, or large code and log dumps.
+
+## Refresh the active handoff
+
+After a substantial turn, POST one current-state snapshot. Include only fields known from the conversation; omit or use empty arrays for unknowns. This is working continuity, not approved durable memory. ADH automatically freezes its latest version before compaction.
+
+```bash
+session_id="${CLAUDE_CODE_REMOTE_SESSION_ID:-}"
+session_id="${session_id#cse_}"
+if [ -z "$session_id" ]; then session_id="$(cat "$(git rev-parse --git-path adh/session-id)" 2>/dev/null || true)"; fi
+payload='{"goal":"REPLACE_GOAL","success_criteria":["REPLACE_CRITERION"],"current_state":"REPLACE_CURRENT_STATE","completed":["REPLACE_COMPLETED"],"in_progress":[],"next_actions":["REPLACE_NEXT_ACTION"],"blockers":[],"open_questions":[],"constraints":[],"failed_attempts":[],"active_files":["REPLACE_PATH"],"research_refs":[],"verification":{"status":"unknown","summary":null,"commit_sha":null}}'
+curl --fail --silent --show-error --max-time 5 \
+  --header "Authorization: Bearer ${ADH_PROJECT_TOKEN}" \
+  --header "X-ADH-Session-ID: ${session_id}" \
+  --header 'Content-Type: application/json' \
+  --data-binary "$payload" \
+  "${ADH_API_URL%/}/v1/continuity-snapshots"
+```
+
+Preserve what would be expensive or dangerous to reconstruct: the actual objective, the user's definition of done, current progress, exact next move, blockers and unanswered questions, constraints and preferences, failed approaches and why, active files, and what was or was not verified.
+
+## Archive source-backed research
+
+When a turn performs meaningful research, POST or refresh a dossier. Keep claims discrete and map each claim to source indexes. Include primary source URLs whenever available, contradictions and caveats, unresolved questions, confidence, and whether the information is time-sensitive. Research is automatically retained as evidence, but decisions inferred from it still go through journal review.
+
+```bash
+session_id="${CLAUDE_CODE_REMOTE_SESSION_ID:-}"
+session_id="${session_id#cse_}"
+if [ -z "$session_id" ]; then session_id="$(cat "$(git rev-parse --git-path adh/session-id)" 2>/dev/null || true)"; fi
+payload='{"topic":"REPLACE_TOPIC","question":"REPLACE_RESEARCH_QUESTION","purpose":"REPLACE_PURPOSE","conclusion":"REPLACE_CONCLUSION","key_findings":[{"claim":"REPLACE_CLAIM","support":"REPLACE_SUPPORT","source_indexes":[0],"confidence":90,"caveat":null}],"sources":[{"title":"REPLACE_TITLE","url":"https://example.com/source","publisher":"REPLACE_PUBLISHER","accessed_at":"REPLACE_DATE"}],"implications":["REPLACE_IMPLICATION"],"contradictions":[],"unresolved_questions":[],"confidence":90,"freshness":"current","status":"complete"}'
+curl --fail --silent --show-error --max-time 5 \
+  --header "Authorization: Bearer ${ADH_PROJECT_TOKEN}" \
+  --header "X-ADH-Session-ID: ${session_id}" \
+  --header 'Content-Type: application/json' \
+  --data-binary "$payload" \
+  "${ADH_API_URL%/}/v1/research-dossiers"
+```
 
 The cloud environment provides `ADH_API_URL` and `ADH_PROJECT_TOKEN`. Never print the token or write it into the repository.
 
