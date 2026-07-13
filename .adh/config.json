@@ -1,10 +1,11 @@
 {
   "capture_assistant_messages": true,
   "capture_prompts": false,
-  "connector_version": 3,
+  "connector_version": 4,
   "max_brief_chars": 8000,
   "max_event_bytes": 65536,
   "mode": "cloud_advisory",
+  "repository": "matbram/opus-3d-world",
   "schema_version": 1,
   "test": {
     "command": null,
